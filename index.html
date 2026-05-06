@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#f8c99b" />
+  <title>Doma's Cosy Autumn Quest</title>
+
+  <style>
+    :root {
+      --cream: #fff8ef;
+      --card: rgba(255, 255, 255, 0.88);
+      --text: #63351f;
+      --muted: #8b5a3c;
+      --pink: #ff6fa8;
+      --rose: #e9477f;
+      --matcha: #8faa5b;
+      --mango: #ffbd47;
+      --sunflower: #f7c948;
+      --autumn: #e9823a;
+      --shadow: rgba(94, 52, 29, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      touch-action: none;
+      background: var(--cream);
+    }
+
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    #gameShell {
+      position: relative;
+      width: 100vw;
+      height: 100dvh;
+      overflow: hidden;
+      transition: background 700ms ease;
+      background:
+        radial-gradient(circle at 18% 13%, rgba(255, 255, 255, 0.95) 0 8%, transparent 24%),
+        linear-gradient(180deg, #ffd89f 0%, #fff3d8 47%, #ffe0e8 100%);
+    }
+
+    #gameShell.autumn {
+      background:
+        radial-gradient(circle at 18% 13%, rgba(255, 255, 255, 0.95) 0 8%, transparent 24%),
+        linear-gradient(180deg, #ffd89f 0%, #fff3d8 47%, #ffe0e8 100%);
+    }
+
+    #gameShell.cafe {
+      background:
+        radial-gradient(circle at 20% 18%, rgba(255,255,255,0.85) 0 8%, transparent 23%),
+        linear-gradient(180deg, #dce9bd 0%, #fff0cc 55%, #ffd7df 100%);
+    }
+
+    #gameShell.mango {
+      background:
+        radial-gradient(circle at 75% 18%, rgba(255,255,255,0.85) 0 9%, transparent 23%),
+        linear-gradient(180deg, #ffe39c 0%, #ffc36a 48%, #fff0cf 100%);
+    }
+
+    #gameShell.sunflower {
+      background:
+        radial-gradient(circle at 25% 15%, rgba(255,255,255,0.9) 0 10%, transparent 26%),
+        linear-gradient(180deg, #fff1a8 0%, #ffe2a3 46%, #e2f0b8 100%);
+    }
+
+    #gameShell.mountain {
+      background:
+        radial-gradient(circle at 80% 13%, rgba(255,255,255,0.9) 0 8%, transparent 23%),
+        linear-gradient(180deg, #cde8ff 0%, #f6e0b6 55%, #f6c8c8 100%);
+    }
+
+    #gameShell.reserved {
+      background:
+        radial-gradient(circle at 50% 14%, rgba(255,255,255,0.92) 0 10%, transparent 27%),
+        linear-gradient(180deg, #fbd0d8 0%, #fff1b5 48%, #dce9bd 100%);
+    }
+
+    #decorLayer,
+    #playArea,
+    #mountains {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    #mountains {
+      z-index: 1;
+      opacity: 0.34;
+    }
+
+    .mountain {
+      position: absolute;
+      bottom: 0;
+      width: 0;
+      height: 0;
+      border-left: 46vw solid transparent;
+      border-right: 46vw solid transparent;
+      border-bottom: 34vh solid rgba(112, 91, 84, 0.34);
+      filter: blur(0.2px);
+    }
+
+    .mountain.one {
+      left: -30vw;
+      border-bottom-color: rgba(112, 91, 84, 0.28);
+    }
+
+    .mountain.two {
+      left: 16vw;
+      bottom: -3vh;
+      border-left-width: 54vw;
+      border-right-width: 54vw;
+      border-bottom: 39vh solid rgba(112, 91, 84, 0.22);
+    }
+
+    .mountain.three {
+      right: -36vw;
+      border-bottom-color: rgba(112, 91, 84, 0.25);
+    }
+
+    .floating {
+      position: absolute;
+      z-index: 2;
+      opacity: 0.26;
+      font-size: 18px;
+      animation: floatUp linear infinite;
+    }
+
+    @keyframes floatUp {
+      from { transform: translateY(108vh) rotate(0deg); }
+      to { transform: translateY(-18vh) rotate(360deg); }
+    }
+
+    #hud {
+      position: absolute;
+      z-index: 20;
+      top: calc(env(safe-area-inset-top) + 10px);
+      left: 10px;
+      right: 10px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 7px;
+      padding: 9px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.68);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 14px 34px var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      font-weight: 900;
+    }
+
+    .hudPill {
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+      padding: 8px 6px;
+      border-radius: 999px;
+      background: rgba(255, 248, 239, 0.92);
+      color: #7b3d25;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    #moodPill {
+      flex: 1.35;
+      color: #6c4a1f;
+    }
+
+    #playArea {
+      z-index: 8;
+    }
+
+    #basket {
+      position: absolute;
+      z-index: 15;
+      width: 98px;
+      height: 58px;
+      bottom: calc(env(safe-area-inset-bottom) + 26px);
+      left: calc(50% - 49px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px 18px 30px 30px;
+      background: linear-gradient(180deg, #ffb86b, #e9823a);
+      box-shadow: 0 16px 30px rgba(108, 60, 30, 0.28);
+      font-size: 26px;
+      transform: translateZ(0);
+    }
+
+    #basket::before {
+      content: "";
+      position: absolute;
+      top: -19px;
+      width: 76px;
+      height: 34px;
+      border: 7px solid rgba(231, 115, 58, 0.92);
+      border-bottom: 0;
+      border-radius: 46px 46px 0 0;
+    }
+
+    #basket::after {
+      content: "Doma";
+      position: absolute;
+      bottom: 7px;
+      color: white;
+      font-size: 13px;
+      font-weight: 1000;
+      letter-spacing: 0.3px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.18);
+    }
+
+    .fallingItem {
+      position: absolute;
+      z-index: 11;
+      font-size: 36px;
+      line-height: 1;
+      will-change: transform;
+      filter: drop-shadow(0 8px 9px rgba(94, 52, 29, 0.18));
+    }
+
+    .sparkle {
+      position: absolute;
+      z-index: 28;
+      pointer-events: none;
+      font-size: 22px;
+      animation: sparklePop 580ms ease-out forwards;
+    }
+
+    @keyframes sparklePop {
+      0% { transform: scale(0.45); opacity: 0; }
+      42% { transform: scale(1.25); opacity: 1; }
+      100% { transform: scale(1.7) translateY(-24px); opacity: 0; }
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(255, 248, 239, 0.84);
+      backdrop-filter: blur(12px);
+    }
+
+    .card {
+      width: min(92vw, 450px);
+      max-height: 88dvh;
+      overflow: auto;
+      text-align: center;
+      padding: 28px 22px;
+      border-radius: 34px;
+      background: var(--card);
+      box-shadow: 0 24px 60px var(--shadow);
+      border: 1px solid rgba(255,255,255,0.72);
+    }
+
+    h1 {
+      font-size: clamp(34px, 10vw, 48px);
+      line-height: 0.96;
+      margin-bottom: 14px;
+      color: #bd5a2e;
+      letter-spacing: -1.15px;
+    }
+
+    h2 {
+      font-size: clamp(27px, 8vw, 40px);
+      line-height: 1.04;
+      color: #bd5a2e;
+      margin-bottom: 12px;
+      letter-spacing: -0.7px;
+    }
+
+    p {
+      margin: 10px 0;
+      font-size: 17px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .smallText {
+      font-size: 14px;
+      opacity: 0.86;
+    }
+
+    .itemRow {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 16px auto 8px;
+      font-size: 26px;
+    }
+
+    button {
+      border: 0;
+      margin-top: 18px;
+      padding: 15px 22px;
+      min-width: 190px;
+      border-radius: 999px;
+      color: white;
+      background: linear-gradient(180deg, #ff9d56, #e66c37);
+      box-shadow: 0 15px 28px rgba(189, 90, 46, 0.28);
+      font-size: 17px;
+      font-weight: 1000;
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: translateY(2px) scale(0.99);
+      box-shadow: 0 9px 18px rgba(189, 90, 46, 0.22);
+    }
+
+    #messageScreen,
+    #gameOverScreen,
+    #winScreen {
+      display: none;
+    }
+
+    #messageNumber {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #ffe4b8;
+      color: #c45a2d;
+      font-weight: 1000;
+      margin-bottom: 12px;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.8);
+    }
+
+    #loveMessage {
+      font-size: clamp(21px, 6vw, 29px);
+      line-height: 1.2;
+      color: #63351f;
+      font-weight: 900;
+      margin: 14px 0 5px;
+    }
+
+    .progressWrap {
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #ffe9cf;
+      margin: 20px 0 6px;
+    }
+
+    #progressBar {
+      width: 0%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #8faa5b, #ffbd47, #ff6fa8);
+      transition: width 220ms ease;
+    }
+
+    #miniInstruction {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.55);
+      font-weight: 800;
+      color: #7b3d25;
+    }
+
+    @media (max-height: 680px) {
+      .card { padding: 21px 18px; }
+      h1 { font-size: 32px; }
+      h2 { font-size: 27px; }
+      p { font-size: 15px; }
+      button { padding: 13px 18px; }
+      #basket { bottom: calc(env(safe-area-inset-bottom) + 18px); }
+      .itemRow { font-size: 22px; margin: 10px auto 5px; }
+    }
+  </style>
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+</head>
+
+<body>
+  <main id="gameShell" class="autumn">
+    <div id="mountains" aria-hidden="true">
+      <div class="mountain one"></div>
+      <div class="mountain two"></div>
+      <div class="mountain three"></div>
+    </div>
+
+    <div id="decorLayer" aria-hidden="true"></div>
+    <div id="playArea"></div>
+
+    <div id="hud">
+      <div class="hudPill" id="scoreText">✨ 0/150</div>
+      <div class="hudPill" id="moodPill">🍂 Autumn Morning</div>
+      <div class="hudPill" id="livesText">☁️ 3</div>
+    </div>
+
+    <div id="basket">🍵</div>
+
+    <section class="screen" id="startScreen">
+      <div class="card">
+        <h1>Doma's Cosy Autumn Quest</h1>
+        <p>Collect your favourite things, avoid the sad clouds, and unlock 30 little love notes.</p>
+        <div class="itemRow">🍵 🥭 🌻 🍂 💖</div>
+        <p id="miniInstruction">Move Doma’s basket with your finger.</p>
+        <p class="smallText">Made only for Doma, with matcha, autumn, mango slushy, sunflowers, and all my love.</p>
+        <button id="startButton">Start Doma’s Quest</button>
+      </div>
+    </section>
+
+    <section class="screen" id="messageScreen">
+      <div class="card">
+        <div id="messageNumber">1</div>
+        <h2>Love note unlocked</h2>
+        <p id="loveMessage"></p>
+        <div class="progressWrap"><div id="progressBar"></div></div>
+        <p class="smallText" id="progressText">5 / 150 points</p>
+        <button id="continueButton">Continue</button>
+      </div>
+    </section>
+
+    <section class="screen" id="gameOverScreen">
+      <div class="card">
+        <h2>Oh no ☁️</h2>
+        <p>The sad clouds got in the way.</p>
+        <p>But I still love you, Doma.</p>
+        <button class="restartButton">Try Again</button>
+      </div>
+    </section>
+
+    <section class="screen" id="winScreen">
+      <div class="card">
+        <h2>Reserved for Doma</h2>
+        <div class="itemRow">🍵 🥭 🌻 🍂 💖</div>
+        <p>One matcha, one mango slushy, a sky full of autumn leaves, sunflowers everywhere, and all my love.</p>
+        <p>Doma, you won my heart again. Always. 💖</p>
+        <button class="restartButton">Play Again</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ----------------------------------------------------
+    // EASY EDIT SECTION
+    // ----------------------------------------------------
+    // Doma gets one message every 5 points.
+    // 30 messages x 5 points = 150 winning score.
+
+    const PLAYER_NAME = "Doma";
+    const WINNING_SCORE = 150;
+    const MESSAGE_EVERY = 5;
+    const STARTING_LIVES = 3;
+
+    // Increase speeds if you want the game harder.
+    const GOOD_SPEED_MIN = 2.0;
+    const GOOD_SPEED_MAX = 3.45;
+    const BAD_SPEED_MIN = 2.15;
+    const BAD_SPEED_MAX = 3.75;
+
+    const loveMessages = [
+      "Doma, you make even ordinary days feel special.",
+      "Your smile feels like sunlight through autumn leaves.",
+      "I made this little game just to make you smile.",
+      "Every heart you collect is actually mine.",
+      "You are my favourite notification.",
+      "You make my world softer.",
+      "You are sweeter than mango slushy.",
+      "You are warmer than a perfect cup of matcha.",
+      "I love the way you exist in my life.",
+      "I hope this silly little game reminds you how special you are.",
+      "Doma, you are my safe place.",
+      "You are my chaos and my calm.",
+      "If I had a sunflower garden, every flower would turn towards you.",
+      "You make distance feel smaller.",
+      "I would choose you in every version of this life.",
+      "You are the cutest reason behind this game.",
+      "I love your smile, your madness, your softness, everything.",
+      "You turn small moments into memories.",
+      "You are not just loved, you are treasured.",
+      "I hope you know how much happiness you bring me.",
+      "Doma, you are my favourite thought.",
+      "I love you in the quiet ways too.",
+      "You make my heart feel at home.",
+      "I am lucky that you are mine.",
+      "You are the best part of my day.",
+      "You are my favourite kind of beautiful.",
+      "No matcha, no mango slushy, no sunflower can compete with you.",
+      "No game can measure how much I love you.",
+      "You collected 145 points, but you stole my heart long before this.",
+      "Doma, you won my heart again. Always. 💖"
+    ];
+
+    // ----------------------------------------------------
+    // GAME CODE
+    // No need to edit below.
+    // ----------------------------------------------------
+
+    const gameShell = document.getElementById("gameShell");
+    const decorLayer = document.getElementById("decorLayer");
+    const playArea = document.getElementById("playArea");
+    const basket = document.getElementById("basket");
+    const hud = document.getElementById("hud");
+
+    const startScreen = document.getElementById("startScreen");
+    const messageScreen = document.getElementById("messageScreen");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const winScreen = document.getElementById("winScreen");
+
+    const scoreText = document.getElementById("scoreText");
+    const moodPill = document.getElementById("moodPill");
+    const livesText = document.getElementById("livesText");
+    const loveMessage = document.getElementById("loveMessage");
+    const messageNumber = document.getElementById("messageNumber");
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
+
+    const startButton = document.getElementById("startButton");
+    const continueButton = document.getElementById("continueButton");
+    const restartButtons = document.querySelectorAll(".restartButton");
+
+    const goodItems = [
+      { emoji: "🍵", points: 1, label: "matcha" },
+      { emoji: "🥭", points: 1, label: "mango slushy" },
+      { emoji: "🌻", points: 1, label: "sunflower" },
+      { emoji: "🍂", points: 1, label: "autumn leaf" },
+      { emoji: "💖", points: 2, label: "heart note" }
+    ];
+
+    const badItems = [
+      { emoji: "☁️", label: "sad cloud" },
+      { emoji: "💧", label: "cold rain" },
+      { emoji: "🥀", label: "wilted flower" }
+    ];
+
+    const moods = [
+      { min: 0, name: "🍂 Autumn Morning", className: "autumn", basket: "🍂" },
+      { min: 25, name: "🍵 Matcha Café", className: "cafe", basket: "🍵" },
+      { min: 50, name: "🥭 Mango Slushy Afternoon", className: "mango", basket: "🥭" },
+      { min: 75, name: "🌻 Sunflower Garden", className: "sunflower", basket: "🌻" },
+      { min: 100, name: "🏔️ Himalayan Autumn Sky", className: "mountain", basket: "💖" },
+      { min: 125, name: "💌 Reserved Table for Doma", className: "reserved", basket: "💌" }
+    ];
+
+    let score = 0;
+    let lives = STARTING_LIVES;
+    let unlockedMessages = 0;
+    let basketX = 0;
+    let items = [];
+    let lastSpawn = 0;
+    let animationId = null;
+    let isPlaying = false;
+    let isPaused = false;
+    let lastTime = 0;
+
+    function randomBetween(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function vibrate(ms) {
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(ms);
+      }
+    }
+
+    function createDecor() {
+      const symbols = ["🍂", "🍁", "💖", "🌻", "✨"];
+      decorLayer.innerHTML = "";
+      for (let i = 0; i < 34; i++) {
+        const el = document.createElement("div");
+        el.className = "floating";
+        el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        el.style.left = `${Math.random() * 100}%`;
+        el.style.fontSize = `${randomBetween(13, 28)}px`;
+        el.style.animationDuration = `${randomBetween(7, 15)}s`;
+        el.style.animationDelay = `${randomBetween(-15, 0)}s`;
+        decorLayer.appendChild(el);
+      }
+    }
+
+    function getMood() {
+      let current = moods[0];
+      for (const mood of moods) {
+        if (score >= mood.min) current = mood;
+      }
+      return current;
+    }
+
+    function updateMood() {
+      const mood = getMood();
+      gameShell.className = mood.className;
+      moodPill.textContent = mood.name;
+      basket.textContent = mood.basket;
+    }
+
+    function updateHud() {
+      scoreText.textContent = `✨ ${score}/${WINNING_SCORE}`;
+      livesText.textContent = `☁️ ${lives}`;
+      updateMood();
+    }
+
+    function setBasketPosition(x) {
+      const shellWidth = gameShell.clientWidth;
+      const basketWidth = basket.offsetWidth || 98;
+      basketX = clamp(x - basketWidth / 2, 8, shellWidth - basketWidth - 8);
+      basket.style.left = `${basketX}px`;
+    }
+
+    function handleMove(clientX) {
+      if (!isPlaying || isPaused) return;
+      setBasketPosition(clientX);
+    }
+
+    function chooseItem() {
+      const makeBad = Math.random() < 0.22;
+      if (makeBad) {
+        const data = badItems[Math.floor(Math.random() * badItems.length)];
+        return { ...data, type: "bad", points: 0 };
+      }
+
+      const data = goodItems[Math.floor(Math.random() * goodItems.length)];
+      return { ...data, type: "good" };
+    }
+
+    function spawnItem() {
+      const data = chooseItem();
+      const el = document.createElement("div");
+      el.className = "fallingItem";
+      el.textContent = data.emoji;
+
+      const size = data.type === "bad" ? randomBetween(34, 43) : randomBetween(31, 42);
+      const x = randomBetween(12, gameShell.clientWidth - size - 12);
+      const speed = data.type === "bad"
+        ? randomBetween(BAD_SPEED_MIN, BAD_SPEED_MAX)
+        : randomBetween(GOOD_SPEED_MIN, GOOD_SPEED_MAX);
+
+      el.style.fontSize = `${size}px`;
+      el.style.transform = `translate(${x}px, -64px)`;
+      playArea.appendChild(el);
+
+      items.push({
+        el,
+        type: data.type,
+        points: data.points,
+        x,
+        y: -64,
+        size,
+        speed,
+        label: data.label
+      });
+    }
+
+    function makeSparkle(x, y, text) {
+      const sparkle = document.createElement("div");
+      sparkle.className = "sparkle";
+      sparkle.textContent = text || (Math.random() > 0.5 ? "✨" : "💞");
+      sparkle.style.left = `${x}px`;
+      sparkle.style.top = `${y}px`;
+      gameShell.appendChild(sparkle);
+      setTimeout(() => sparkle.remove(), 620);
+    }
+
+    function removeItem(item) {
+      item.el.remove();
+      items = items.filter(existing => existing !== item);
+    }
+
+    function clearItems() {
+      items.forEach(item => item.el.remove());
+      items = [];
+    }
+
+    function checkCollision(item) {
+      const basketRect = basket.getBoundingClientRect();
+      const itemRect = item.el.getBoundingClientRect();
+
+      return !(
+        itemRect.right < basketRect.left ||
+        itemRect.left > basketRect.right ||
+        itemRect.bottom < basketRect.top ||
+        itemRect.top > basketRect.bottom
+      );
+    }
+
+    function showMessage(index) {
+      isPaused = true;
+      clearItems();
+
+      const messageIndex = Math.min(index, loveMessages.length - 1);
+      loveMessage.textContent = loveMessages[messageIndex];
+      messageNumber.textContent = `${messageIndex + 1}`;
+      progressText.textContent = `${score} / ${WINNING_SCORE} points`;
+      progressBar.style.width = `${Math.min(100, (score / WINNING_SCORE) * 100)}%`;
+
+      unlockedMessages = Math.max(unlockedMessages, messageIndex + 1);
+      updateHud();
+
+      messageScreen.style.display = "flex";
+    }
+
+    function maybeUnlockMessage(previousScore) {
+      const previousBucket = Math.floor(previousScore / MESSAGE_EVERY);
+      const currentBucket = Math.floor(score / MESSAGE_EVERY);
+
+      if (currentBucket > previousBucket && unlockedMessages < loveMessages.length) {
+        const messageIndex = currentBucket - 1;
+        showMessage(messageIndex);
+        return true;
+      }
+
+      return false;
+    }
+
+    function winGame() {
+      isPlaying = false;
+      isPaused = true;
+      clearItems();
+      cancelAnimationFrame(animationId);
+      hud.style.display = "none";
+      basket.style.display = "none";
+      winScreen.style.display = "flex";
+      vibrate(100);
+    }
+
+    function gameOver() {
+      isPlaying = false;
+      isPaused = true;
+      clearItems();
+      cancelAnimationFrame(animationId);
+      hud.style.display = "none";
+      basket.style.display = "none";
+      gameOverScreen.style.display = "flex";
+      vibrate(120);
+    }
+
+    function updateGame(time) {
+      if (!isPlaying || isPaused) return;
+
+      if (!lastTime) lastTime = time;
+      const delta = Math.min(32, time - lastTime);
+      lastTime = time;
+
+      const spawnGap = Math.max(390, 850 - score * 3.2);
+      if (time - lastSpawn > spawnGap) {
+        spawnItem();
+        lastSpawn = time;
+      }
+
+      for (const item of [...items]) {
+        item.y += item.speed * (delta / 16.67);
+        item.el.style.transform = `translate(${item.x}px, ${item.y}px)`;
+
+        if (checkCollision(item)) {
+          if (item.type === "good") {
+            const previousScore = score;
+            score = Math.min(WINNING_SCORE, score + item.points);
+
+            makeSparkle(item.x + item.size / 2, item.y + item.size / 2, item.points === 2 ? "💖" : "✨");
+            vibrate(18);
+            removeItem(item);
+            updateHud();
+
+            if (score >= WINNING_SCORE) {
+              winGame();
+              return;
+            }
+
+            if (maybeUnlockMessage(previousScore)) {
+              return;
+            }
+          } else {
+            lives -= 1;
+            makeSparkle(item.x + item.size / 2, item.y + item.size / 2, "☁️");
+            vibrate(70);
+            removeItem(item);
+            updateHud();
+
+            if (lives <= 0) {
+              gameOver();
+              return;
+            }
+          }
+        } else if (item.y > gameShell.clientHeight + 85) {
+          removeItem(item);
+        }
+      }
+
+      animationId = requestAnimationFrame(updateGame);
+    }
+
+    function startGame() {
+      score = 0;
+      lives = STARTING_LIVES;
+      unlockedMessages = 0;
+      items = [];
+      lastSpawn = 0;
+      lastTime = 0;
+      isPlaying = true;
+      isPaused = false;
+
+      startScreen.style.display = "none";
+      messageScreen.style.display = "none";
+      gameOverScreen.style.display = "none";
+      winScreen.style.display = "none";
+      hud.style.display = "flex";
+      basket.style.display = "flex";
+
+      updateHud();
+      setBasketPosition(gameShell.clientWidth / 2);
+      cancelAnimationFrame(animationId);
+      animationId = requestAnimationFrame(updateGame);
+    }
+
+    function continueGame() {
+      messageScreen.style.display = "none";
+      isPaused = false;
+      lastTime = 0;
+      lastSpawn = performance.now();
+      animationId = requestAnimationFrame(updateGame);
+    }
+
+    startButton.addEventListener("click", startGame);
+    continueButton.addEventListener("click", continueGame);
+    restartButtons.forEach(button => button.addEventListener("click", startGame));
+
+    gameShell.addEventListener("touchstart", event => {
+      if (!event.touches[0]) return;
+      handleMove(event.touches[0].clientX);
+    }, { passive: false });
+
+    gameShell.addEventListener("touchmove", event => {
+      event.preventDefault();
+      if (!event.touches[0]) return;
+      handleMove(event.touches[0].clientX);
+    }, { passive: false });
+
+    gameShell.addEventListener("mousemove", event => {
+      handleMove(event.clientX);
+    });
+
+    window.addEventListener("resize", () => {
+      setBasketPosition(gameShell.clientWidth / 2);
+    });
+
+    createDecor();
+    updateHud();
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
